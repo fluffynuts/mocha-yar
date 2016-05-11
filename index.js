@@ -66,7 +66,7 @@ function printFail(test) {
 
 function ProgressReporter(runner) {
   Base.call(this, runner);
-  let passes = 0,
+  var passes = 0,
       failures = 0,
       current = null;
   var total = runner.total;
