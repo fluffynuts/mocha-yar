@@ -6,6 +6,12 @@ const gulp = require('gulp'),
         debug = require('gulp-debug'),
         ProgressReporter = require('../index.js');
 
+ProgressReporter.setOptions({
+    suppressOutputFrom: [
+        'should suppress console output for tests specified by title when calling setOptions'
+    ]
+});
+
 const runTests = function() {
     return gulp.src(['js/**/*.spec.js'])
                 .pipe(debug())

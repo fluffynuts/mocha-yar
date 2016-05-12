@@ -10,4 +10,8 @@ describe('Yet Another Reporter for Mocha', function() {
     it('should increment the failed count when a test fails', function() {
         expect(true).to.equal(false);
     });
+    it('should suppress console output for tests specified by title when calling setOptions', function() {
+        console.log('should not see this log');
+        expect(true).to.be.true
+    });
 });

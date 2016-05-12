@@ -64,6 +64,23 @@ function printFail(test) {
   writeColor(red, '\nFail: ' + test.title + '\n');
 }
 
+var options = {};
+function extendOptionsWith(otherOptions) {
+  if (!otherOptions) {
+    options = {};
+  }
+  for (var prop in otherOptions) {
+    if (otherOptions.hasOwnProperty(prop)) {
+        options[prop] = otherOptions[prop];
+    }
+  }
+}
+
+function outputIgnoredFor(testName) {
+  var ignores = options.suppressOutputFrom || [];
+  return ignores.indexOf(testName) > -1;
+}
+
 function ProgressReporter(runner) {
   Base.call(this, runner);
   var passes = 0,
@@ -71,23 +88,28 @@ function ProgressReporter(runner) {
       current = null;
   var total = runner.total;
   var properLog = console.log;
+
+  var testAwareLogger = function(s) {
+    if (typeof s === 'object') {
+      s = JSON.stringify(s);
+    }
+    if (current) {
+      clearLine();
+      write('Console output from test "' + current + '":\n');
+    }
+    write('\n' + s + '\n');
+  };
+  var noop = function() {};
+
   runner.on('start', function() {
     writeParts('pass', 'fail', 'total');
     write('\n');
-    console.log = function(s) {
-      if (typeof s === 'object') {
-        s = JSON.stringify(s);
-      }
-      if (current) {
-        clearLine();
-        write('Console output from test "' + current + '":\n');
-      }
-      write('\n' + s + '\n');
-    };
+    console.log = testAwareLogger;
   });
 
   runner.on('test', function(test) {
     current = test.title;
+    console.log = outputIgnoredFor(test.title) ? noop : testAwareLogger;
   });
 
   runner.on('pass', function(test) {
@@ -108,6 +130,9 @@ function ProgressReporter(runner) {
 }
 
 ProgressReporter.prototype.__proto__ = Base.prototype
+ProgressReporter.setOptions = function(newOptions) {
+  extendOptionsWith(newOptions);
+};
 
 exports = module.exports = ProgressReporter;
 
