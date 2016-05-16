@@ -85,7 +85,8 @@ function ProgressReporter(runner) {
   Base.call(this, runner);
   var passes = 0,
       failures = 0,
-      current = null;
+      current = null,
+      alreadyDidTestNameForLog = false;
   var total = runner.total;
   var properLog = console.log;
 
@@ -93,11 +94,12 @@ function ProgressReporter(runner) {
     if (typeof s === 'object') {
       s = JSON.stringify(s);
     }
-    if (current) {
+    if (current && !alreadyDidTestNameForLog) {
+      alreadyDidTestNameForLog = true;
       clearLine();
-      write('Console output from test "' + current + '":\n');
+      write('"' + current + '" says:');
     }
-    write('\n' + s + '\n');
+    write('\n' + s);
   };
   var noop = function() {};
 
@@ -109,16 +111,25 @@ function ProgressReporter(runner) {
 
   runner.on('test', function(test) {
     current = test.title;
+    alreadyDidTestNameForLog = false;
     console.log = outputIgnoredFor(test.title) ? noop : testAwareLogger;
   });
 
+  var writeNewlineIfLogged = function() {
+    if (alreadyDidTestNameForLog) {
+      write('\n');
+    }
+  };
+
   runner.on('pass', function(test) {
     passes++;
+    writeNewlineIfLogged();
     printProgress(passes, failures, total);
   });
 
   runner.on('fail', function(test) {
     failures++;
+    writeNewlineIfLogged();
     printFail(test);
     printProgress(passes, failures, total);
   });
