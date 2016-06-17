@@ -5,6 +5,7 @@
     "gulp": "^3.9.1",
     "gulp-debug": "^2.1.2",
     "gulp-mocha": "^2.2.0",
+    "jslint": "^0.10.1",
     "run-sequence": "^1.1.5"
   }
 }

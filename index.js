@@ -1,40 +1,40 @@
 // vim: shiftwidth=2 tabstop=2
 'use strict';
 var white = 37,
-        green = 32,
-        red = 31,
-        yellow = 33,
-        blue = 34,
-        purple = 35,
-        teal = 36;
+  green = 32,
+  red = 31,
+  yellow = 33,
+  blue = 34,
+  purple = 35,
+  teal = 36;
 
 var Base = require('mocha/lib/reporters/base');
 
-function write (s) {
+function write(s) {
   process.stdout.write(s);
-};
+}
 
-function writeColor (color, message) {
+function writeColor(color, message) {
   write('\x1B[' + color + 'm' + message);
 }
 
-function resetConsoleColors () {
+function resetConsoleColors() {
   write('\x1B[0m');
-};
+}
 
 function writeSlash() {
   writeColor(white, ' / ');
 }
 
 var emptyLine = '                                ';
-function clearLine () {
+function clearLine() {
   resetConsoleColors();
   write('\r' + emptyLine + '\r');
 }
 
 var fieldWidth = 6;
 function padOut(s) {
-  s = s + '';
+  s = String(s);
   while (s.length < fieldWidth) {
     if (s.length % 2) {
       s = s + ' ';
@@ -45,7 +45,7 @@ function padOut(s) {
   return s;
 }
 
-function writeParts (first, second, third) {
+function writeParts(first, second, third) {
   first = padOut(first);
   second = padOut(second);
   third = padOut(third);
@@ -59,7 +59,7 @@ function writeParts (first, second, third) {
 }
 
 function printProgress(passes, failures, total) {
-    writeParts(passes, failures, total);
+  writeParts(passes, failures, total);
 }
 
 function printFail(test) {
@@ -69,12 +69,13 @@ function printFail(test) {
 
 var options = {};
 function extendOptionsWith(otherOptions) {
+  var prop;
   if (!otherOptions) {
     options = {};
   }
-  for (var prop in otherOptions) {
+  for (prop in otherOptions) {
     if (otherOptions.hasOwnProperty(prop)) {
-        options[prop] = otherOptions[prop];
+      options[prop] = otherOptions[prop];
     }
   }
 }
@@ -83,16 +84,41 @@ function outputIgnoredFor(testName) {
   var ignores = options.suppressOutputFrom || [];
   return ignores.indexOf(testName) > -1;
 }
+function isNull(v) {
+  return v === null;
+}
+function nullAsString() {
+  return 'null';
+}
+function isUndefined(v) {
+  return v === undefined;
+}
+function undefinedAsString() {
+  return 'undefined';
+}
+function isArrayOrObject(v) {
+  return Array.isArray(v) || typeof v === 'object';
+}
+function prettyJson(v) {
+  return JSON.stringify(v, null, 2);
+}
+function fallback() {
+  return true;
+}
+function passThrough(v) {
+  return v;
+}
+function noop() { return undefined; }
 
 var stringMaps = [
-  { match: function(v) { return v === null; }, transform: function() { return 'null'; } },
-  { match: function(v) { return v === undefined; }, transform: function() { return 'undefined'; } },
-  { match: function(v) { return Array.isArray(v) || typeof(v) === typeof({}); }, transform: function(v) { return JSON.stringify(v, null, 2); } },
-  { match: function(v) { return true; }, transform: function(v) { return v; } }
-]
+  { match: isNull, transform: nullAsString },
+  { match: isUndefined, transform: undefinedAsString },
+  { match: isArrayOrObject, transform: prettyJson },
+  { match: fallback, transform: passThrough }
+];
 
 function asString(val) {
-  const transform = stringMaps.reduce(function(acc, cur) {
+  var transform = stringMaps.reduce(function (acc, cur) {
     return acc || (cur.match(val) ? cur.transform : null);
   }, null);
   return transform(val);
@@ -100,81 +126,80 @@ function asString(val) {
 
 function ProgressReporter(runner) {
   Base.call(this, runner);
-  var passes = 0,
-      failures = 0,
-      current = null,
-      haveDoneSomeLoggingBefore = false,
-      alreadyDidTestNameForLog = false;
-  var total = runner.total;
-  var properLog = console.log;
-  var properError = console.error;
+  var
+    passes = 0,
+    failures = 0,
+    current = null,
+    haveDoneSomeLoggingBefore = false,
+    alreadyDidTestNameForLog = false,
+    total = runner.total,
+    properLog = console.log,
+    properError = console.error;
 
-  var createTestAwareOutputter = function(withOutputColor) {
-    return function() {
-      var args = Array.prototype.slice.apply(arguments)
-      var output = args
-                    .map(function(a) { return asString(a); })
-                    .join(' ');
+  var createTestAwareOutputter = function (withOutputColor) {
+    return function () {
+      var
+        args = Array.prototype.slice.apply(arguments),
+        output = args.map(asString).join(' ');
 
       if (current && !alreadyDidTestNameForLog) {
         alreadyDidTestNameForLog = true;
         clearLine();
         var header = ['"', current, '" says:'];
         if (haveDoneSomeLoggingBefore) {
-          header.splice(0, 0, '\n')
+          header.splice(0, 0, '\n');
         }
         haveDoneSomeLoggingBefore = true;
         writeColor(teal, header.join(''));
         resetConsoleColors();
       }
       writeColor(withOutputColor, '\n' + output);
-    };    
-  }
+    };
+  };
   var testAwareLogger = createTestAwareOutputter(white);
   var testAwareError = createTestAwareOutputter(red);
-  var noop = function() {};
 
-  runner.on('start', function() {
+  runner.on('start', function () {
     writeParts('pass', 'fail', 'total');
     write('\n');
     console.log = testAwareLogger;
   });
 
-  runner.on('test', function(test) {
+  runner.on('test', function (test) {
     current = test.title;
     alreadyDidTestNameForLog = false;
     console.log = outputIgnoredFor(test.title) ? noop : testAwareLogger;
-    console.error = outputIgnoredFor(test.title) ? noop: testAwareError;
+    console.error = outputIgnoredFor(test.title) ? noop : testAwareError;
   });
 
-  var writeNewlineIfLogged = function() {
+  var writeNewlineIfLogged = function () {
     if (alreadyDidTestNameForLog) {
       write('\n');
     }
   };
 
-  runner.on('pass', function(test) {
-    passes++;
+  runner.on('pass', function () {
+    passes += 1;
     writeNewlineIfLogged();
     printProgress(passes, failures, total);
   });
 
-  runner.on('fail', function(test) {
-    failures++;
+  runner.on('fail', function (test) {
+    failures += 1;
     writeNewlineIfLogged();
     printFail(test);
     printProgress(passes, failures, total);
   });
 
-  runner.on('end', function() {
+  runner.on('end', function () {
     console.log = properLog;
     console.error = properError;
   });
   runner.on('end', this.epilogue.bind(this));
 }
 
-ProgressReporter.prototype.__proto__ = Base.prototype
-ProgressReporter.setOptions = function(newOptions) {
+ProgressReporter.prototype.__proto__ = Base.prototype;
+ProgressReporter.setOptions = function (newOptions) {
   extendOptionsWith(newOptions);
 };
 
