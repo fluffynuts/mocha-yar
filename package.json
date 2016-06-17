@@ -4,7 +4,6 @@
   "description": "Yet Another Reporter for Mocha",
   "main": "index.js",
   "scripts": {
-    "pretest": "run-s lint",
     "test": "runtests",
     "lint": "jslint index.js"
   },

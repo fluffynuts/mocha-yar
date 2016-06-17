@@ -6,7 +6,8 @@ var white = 37,
   yellow = 33,
   blue = 34,
   purple = 35,
-  teal = 36;
+  teal = 36,
+  whiteOnRed = 41;
 
 var Base = require('mocha/lib/reporters/base');
 
@@ -157,7 +158,7 @@ function ProgressReporter(runner) {
     };
   };
   var testAwareLogger = createTestAwareOutputter(white);
-  var testAwareError = createTestAwareOutputter(red);
+  var testAwareError = createTestAwareOutputter(whiteOnRed);
 
   runner.on('start', function () {
     writeParts('pass', 'fail', 'total');
