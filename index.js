@@ -3,7 +3,10 @@
 var white = 37,
         green = 32,
         red = 31,
-        yellow = 33;
+        yellow = 33,
+        blue = 34,
+        purple = 35,
+        teal = 36;
 
 var Base = require('mocha/lib/reporters/base');
 
@@ -81,26 +84,54 @@ function outputIgnoredFor(testName) {
   return ignores.indexOf(testName) > -1;
 }
 
+var stringMaps = [
+  { match: function(v) { return v === null; }, transform: function() { return 'null'; } },
+  { match: function(v) { return v === undefined; }, transform: function() { return 'undefined'; } },
+  { match: function(v) { return Array.isArray(v) || typeof(v) === typeof({}); }, transform: function(v) { return JSON.stringify(v, null, 2); } },
+  { match: function(v) { return true; }, transform: function(v) { return v; } }
+]
+
+function asString(val) {
+  const transform = stringMaps.reduce(function(acc, cur) {
+    return acc || (cur.match(val) ? cur.transform : null);
+  }, null);
+  return transform(val);
+}
+
 function ProgressReporter(runner) {
   Base.call(this, runner);
   var passes = 0,
       failures = 0,
       current = null,
+      haveDoneSomeLoggingBefore = false,
       alreadyDidTestNameForLog = false;
   var total = runner.total;
   var properLog = console.log;
+  var properError = console.error;
 
-  var testAwareLogger = function(s) {
-    if (typeof s === 'object') {
-      s = JSON.stringify(s);
-    }
-    if (current && !alreadyDidTestNameForLog) {
-      alreadyDidTestNameForLog = true;
-      clearLine();
-      write('"' + current + '" says:');
-    }
-    write('\n' + s);
-  };
+  var createTestAwareOutputter = function(withOutputColor) {
+    return function() {
+      var args = Array.prototype.slice.apply(arguments)
+      var output = args
+                    .map(function(a) { return asString(a); })
+                    .join(' ');
+
+      if (current && !alreadyDidTestNameForLog) {
+        alreadyDidTestNameForLog = true;
+        clearLine();
+        var header = ['"', current, '" says:'];
+        if (haveDoneSomeLoggingBefore) {
+          header.splice(0, 0, '\n')
+        }
+        haveDoneSomeLoggingBefore = true;
+        writeColor(teal, header.join(''));
+        resetConsoleColors();
+      }
+      writeColor(withOutputColor, '\n' + output);
+    };    
+  }
+  var testAwareLogger = createTestAwareOutputter(white);
+  var testAwareError = createTestAwareOutputter(red);
   var noop = function() {};
 
   runner.on('start', function() {
@@ -113,6 +144,7 @@ function ProgressReporter(runner) {
     current = test.title;
     alreadyDidTestNameForLog = false;
     console.log = outputIgnoredFor(test.title) ? noop : testAwareLogger;
+    console.error = outputIgnoredFor(test.title) ? noop: testAwareError;
   });
 
   var writeNewlineIfLogged = function() {
@@ -136,6 +168,7 @@ function ProgressReporter(runner) {
 
   runner.on('end', function() {
     console.log = properLog;
+    console.error = properError;
   });
   runner.on('end', this.epilogue.bind(this));
 }

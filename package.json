@@ -4,7 +4,7 @@
   "description": "Yet Another Reporter for Mocha",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Tests are visual: run gulp test-once within the test folder\" && exit 1"
   },
   "repository": {
     "type": "git",

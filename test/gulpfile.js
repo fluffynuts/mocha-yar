@@ -24,7 +24,7 @@ const runTests = function() {
 
 
 gulp.task('watch', ['test-once'], function() {
-    const watcher = gulp.watch(['js/**/*.ts'], ['test-once']);
+    const watcher = gulp.watch(['../index.js', 'js/**/*.js'], ['test-once']);
     watcher.on('change', function(ev) {
         console.log('-> ' + ev.type + ': ' + ev.path)
     })
