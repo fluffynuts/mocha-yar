@@ -155,6 +155,7 @@ function ProgressReporter(runner) {
         resetConsoleColors();
       }
       writeColor(withOutputColor, '\n' + output);
+      resetConsoleColors()
     };
   };
   var testAwareLogger = createTestAwareOutputter(white);

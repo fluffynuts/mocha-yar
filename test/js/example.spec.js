@@ -15,6 +15,7 @@ describe('Yet Another Reporter for Mocha', function() {
     });
     it('should print out console.error stuff in red', function() {
       console.error('Naughty, naughty', { more: 'Very naughty' });
+      console.log('(this is not an error)');
     });
     it('should suppress console output for tests specified by title when calling setOptions', function() {
         console.log('should not see this log');
