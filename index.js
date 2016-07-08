@@ -66,13 +66,21 @@ function printProgress(passes, failures, total) {
 function printFail(test) {
   clearLine();
   writeColor(red, '\nFail: ' + test.title + '\n');
+  if (options.impatient) {
+    try {
+      write('\n');
+      writeColor(purple, (test.err || {}).stack);
+      write('\n');
+    } catch (e) {
+    }
+  }
 }
 
 var options = {};
 function extendOptionsWith(otherOptions) {
   var prop;
   if (!otherOptions) {
-    options = {};
+    otherOptions = {};
   }
   for (prop in otherOptions) {
     if (otherOptions.hasOwnProperty(prop)) {

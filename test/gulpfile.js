@@ -9,7 +9,8 @@ const gulp = require('gulp'),
 ProgressReporter.setOptions({
     suppressOutputFrom: [
         'should suppress console output for tests specified by title when calling setOptions'
-    ]
+    ],
+    impatient: false
 });
 
 const runTests = function() {
