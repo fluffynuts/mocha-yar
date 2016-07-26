@@ -109,7 +109,11 @@ function isArrayOrObject(v) {
   return Array.isArray(v) || typeof v === 'object';
 }
 function prettyJson(v) {
-  return JSON.stringify(v, null, 2);
+  try {
+    return JSON.stringify(v, null, 2);
+  } catch (e) {
+    return '[object]'
+  }
 }
 function fallback() {
   return true;
