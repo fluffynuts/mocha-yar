@@ -63,6 +63,7 @@ function printProgress(passes, failures, total) {
   writeParts(passes, failures, total);
 }
 
+var options = {};
 function printFail(test) {
   clearLine();
   writeColor(red, '\nFail: ' + test.title + '\n');
@@ -71,12 +72,11 @@ function printFail(test) {
       write('\n');
       writeColor(purple, (test.err || {}).stack);
       write('\n');
-    } catch (e) {
+    } catch (ignore) {
     }
   }
 }
 
-var options = {};
 function extendOptionsWith(otherOptions) {
   var prop;
   if (!otherOptions) {
@@ -112,7 +112,7 @@ function prettyJson(v) {
   try {
     return JSON.stringify(v, null, 2);
   } catch (e) {
-    return '[object]'
+    return '[object]';
   }
 }
 function fallback() {
@@ -167,7 +167,7 @@ function ProgressReporter(runner) {
         resetConsoleColors();
       }
       writeColor(withOutputColor, '\n' + output);
-      resetConsoleColors()
+      resetConsoleColors();
     };
   };
   var testAwareLogger = createTestAwareOutputter(white);
@@ -211,11 +211,11 @@ function ProgressReporter(runner) {
   });
   runner.on('end', this.epilogue.bind(this));
 }
-
-ProgressReporter.prototype.__proto__ = Base.prototype;
+var proto = '__proto__';
+ProgressReporter.prototype[proto] = Base.prototype;
 ProgressReporter.setOptions = function (newOptions) {
   extendOptionsWith(newOptions);
 };
 
-exports = module.exports = ProgressReporter;
+module.exports = ProgressReporter;
 
