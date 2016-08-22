@@ -137,6 +137,51 @@ function asString(val) {
   return transform(val);
 }
 
+function shouldTime(label) {
+  var setByOptions = options.time && options.time[label];
+  if (setByOptions) {
+    return true;
+  }
+  return !!process.env['TIME_' + label];
+}
+
+function switchLoggerFor(funcToRun, tempLogger) {
+  var before = console.log;
+  try {
+    console.log = tempLogger;
+    funcToRun();
+  } finally {
+    console.log = before;
+  }
+}
+
+function startTotalTimer() {
+  if (shouldTime('total')) {
+    console.time('total test time');
+  }
+}
+
+function startTestTimer(label) {
+  if (shouldTime('test')) {
+    console.time(label);
+  }
+}
+
+function endTestTimer(label, logFn) {
+  if (shouldTime('test')) {
+    switchLoggerFor(function() {
+      console.timeEnd(label);
+    }, logFn);
+  } 
+}
+function endTotalTimer(logFn) {
+  if (shouldTime('total')) {
+    switchLoggerFor(function() {
+      console.timeEnd('total test time');
+    }, logFn);
+  } 
+}
+
 function ProgressReporter(runner) {
   Base.call(this, runner);
   var
@@ -174,6 +219,7 @@ function ProgressReporter(runner) {
   var testAwareError = createTestAwareOutputter(whiteOnRed);
 
   runner.on('start', function () {
+    startTotalTimer()
     writeParts('pass', 'fail', 'total');
     write('\n');
     console.log = testAwareLogger;
@@ -181,6 +227,7 @@ function ProgressReporter(runner) {
 
   runner.on('test', function (test) {
     current = test.title;
+    startTestTimer(test.title);
     alreadyDidTestNameForLog = false;
     console.log = outputIgnoredFor(test.title) ? noop : testAwareLogger;
     console.error = outputIgnoredFor(test.title) ? noop : testAwareError;
@@ -192,10 +239,11 @@ function ProgressReporter(runner) {
     }
   };
 
-  runner.on('pass', function () {
+  runner.on('pass', function (test) {
     passes += 1;
     writeNewlineIfLogged();
     printProgress(passes, failures, total);
+    endTestTimer(test.title, properLog);
   });
 
   runner.on('fail', function (test) {
@@ -203,11 +251,13 @@ function ProgressReporter(runner) {
     writeNewlineIfLogged();
     printFail(test);
     printProgress(passes, failures, total);
+    endTestTimer(test.title, properLog);
   });
 
   runner.on('end', function () {
     console.log = properLog;
     console.error = properError;
+    endTotalTimer(properLog);
   });
   runner.on('end', this.epilogue.bind(this));
 }

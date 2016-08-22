@@ -1,6 +1,6 @@
 {
   "name": "mocha-yar",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Yet Another Reporter for Mocha",
   "main": "index.js",
   "scripts": {

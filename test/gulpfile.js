@@ -10,6 +10,10 @@ ProgressReporter.setOptions({
     suppressOutputFrom: [
         'should suppress console output for tests specified by title when calling setOptions'
     ],
+    time: {
+      total: true,
+      test: true
+    },
     impatient: false
 });
 
