@@ -139,7 +139,7 @@ function asString(val) {
 
 function shouldTime(label) {
   var setByOptions = options.time && options.time[label] !== undefined;
-  var envValue = process.env['TIME_' + label];
+  var envValue = process.env['TIME_' + (label || '').toUpperCase()];
   if (setByOptions && envValue === undefined) {
     return !!setByOptions;
   }
