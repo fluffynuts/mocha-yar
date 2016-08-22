@@ -138,11 +138,24 @@ function asString(val) {
 }
 
 function shouldTime(label) {
-  var setByOptions = options.time && options.time[label];
-  if (setByOptions) {
-    return true;
+  var setByOptions = options.time && options.time[label] !== undefined;
+  var envValue = process.env['TIME_' + label];
+  if (setByOptions && envValue === undefined) {
+    return !!setByOptions;
   }
-  return !!process.env['TIME_' + label];
+  if (envValue === undefined) {
+    return false;
+  }
+  switch (envValue.toLowerCase()) {
+    case 'true':
+    case '1':
+      return true;
+    case 'false':
+    case '0':
+      return false;
+    default:
+      return !!envValue;
+  }
 }
 
 function switchLoggerFor(funcToRun, tempLogger) {

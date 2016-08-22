@@ -6,10 +6,15 @@ A Mocha test reporter designed to be more useful for continuous testing, includi
 
 1. Running counts of passed / failed / total tests
 2. Wrapping of console.log so that:
-  1. You can actually see logs
-  2. They don't interfere with live counts (much)
-  3. You can tell where the logs come from (!!)
+    1. You can actually see logs
+    2. They don't interfere with live counts (much)
+    3. You can tell where the logs come from (!!)
 3. Mad colorz, yo!
+4. Enable timing of tests:
+    1. Via config: ``` { time: { test: true, total: true } } ```
+    2. Via environment variables: `TIME_TEST` and `TIME_TOTAL`
+        - you can use the special values "true", "false", "1" and "0" or any truthy value
+    3. Environment variables override config, if the config exists
 
 ### What you get
 
