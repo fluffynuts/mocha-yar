@@ -28,14 +28,12 @@ const runTests = function() {
 };
 
 
-gulp.task('watch', ['test-once'], function() {
-    const watcher = gulp.watch(['../index.js', 'js/**/*.js'], ['test-once']);
-    watcher.on('change', function(ev) {
-        console.log('-> ' + ev.type + ': ' + ev.path)
-    })
-});
-
 gulp.task('test-once', function() {
     return runTests();
 });
+
+gulp.task('watch', gulp.parallel("test-once", function() {
+    gulp.watch(["../index.js", "js/**/*.js"], gulp.series("test-once"));
+}));
+
 

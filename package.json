@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "runtests",
+    "autotest": "gulp --gulpfile test/gulpfile.js watch",
     "lint": "jslint index.js"
   },
   "repository": {
@@ -25,11 +26,14 @@
   },
   "homepage": "https://github.com/fluffynuts/mocha-yar#readme",
   "dependencies": {
-    "mocha": "^2.4.5"
+    "mocha": "^5.2.0"
   },
   "devDependencies": {
+    "chai": "^4.1.2",
     "del": "^2.2.0",
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.0",
+    "gulp-debug": "^4.0.0",
+    "gulp-mocha": "^6.0.0",
     "jslint": "^0.10.1",
     "npm-run-all": "^2.1.2",
     "run-sequence": "^1.1.5"
