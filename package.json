@@ -1,12 +1,18 @@
 {
   "name": "mocha-yar",
-  "version": "1.0.14",
+  "version": "2.0.0",
   "description": "Yet Another Reporter for Mocha",
   "main": "index.js",
+  "files": [
+    "index.js"
+  ],
   "scripts": {
-    "test": "runtests",
-    "autotest": "gulp --gulpfile test/gulpfile.js watch",
-    "lint": "jslint index.js"
+    "test": "cd test && npm test",
+    "happy": "cd test && npm run happy",
+    "mixed": "cd test && npm run mixed",
+    "autotest": "cd test && gulp watch",
+    "lint": "eslint index.js",
+    "autolint": "nodemon -x \"run-s lint\""
   },
   "repository": {
     "type": "git",
@@ -30,12 +36,9 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "del": "^5.1.0",
-    "gulp": "^4.0.2",
-    "gulp-debug": "^4.0.0",
-    "gulp-mocha": "^7.0.2",
+    "eslint": "^7.3.1",
     "jslint": "^0.12.1",
-    "npm-run-all": "^4.1.5",
-    "run-sequence": "^2.2.1"
+    "nodemon": "^2.0.4",
+    "npm-run-all": "^4.1.5"
   }
 }

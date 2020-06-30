@@ -1,36 +1,36 @@
 // vim: shiftwidth=2 tabstop=2
-'use strict';
+"use strict";
 var white = 37,
   green = 32,
   red = 31,
   yellow = 33,
-  blue = 34,
+  // blue = 34,
   purple = 35,
   teal = 36,
   whiteOnRed = 41;
 
-var Base = require('mocha/lib/reporters/base');
+var Base = require("mocha/lib/reporters/base");
 
 function write(s) {
   process.stdout.write(s);
 }
 
 function writeColor(color, message) {
-  write('\x1B[' + color + 'm' + message);
+  write("\x1B[" + color + "m" + message);
 }
 
 function resetConsoleColors() {
-  write('\x1B[0m');
+  write("\x1B[0m");
 }
 
 function writeSlash() {
-  writeColor(white, ' / ');
+  writeColor(white, " / ");
 }
 
-var emptyLine = '                                ';
+var emptyLine = "                                ";
 function clearLine() {
   resetConsoleColors();
-  write('\r' + emptyLine + '\r');
+  write("\r" + emptyLine + "\r");
 }
 
 var fieldWidth = 6;
@@ -38,9 +38,9 @@ function padOut(s) {
   s = String(s);
   while (s.length < fieldWidth) {
     if (s.length % 2) {
-      s = s + ' ';
+      s = s + " ";
     } else {
-      s = ' ' + s;
+      s = " " + s;
     }
   }
   return s;
@@ -63,56 +63,88 @@ function printProgress(passes, failures, total) {
   writeParts(passes, failures, total);
 }
 
-var options = {};
+var options = {
+  suppressOutputFrom: []
+};
 function printFail(test) {
   clearLine();
-  writeColor(red, '\nFail: ' + test.title + '\n');
+  writeColor(red, "\nFail: " + test.title + "\n");
   if (options.impatient) {
     try {
-      write('\n');
+      write("\n");
       writeColor(purple, (test.err || {}).stack);
-      write('\n');
+      write("\n");
     } catch (ignore) {
+      // intentionally suppressed
     }
   }
 }
 
 function extendOptionsWith(otherOptions) {
-  var prop;
+  var prop, propVal, time = {}, parts;
   if (!otherOptions) {
     otherOptions = {};
   }
   for (prop in otherOptions) {
-    if (otherOptions.hasOwnProperty(prop)) {
-      options[prop] = otherOptions[prop];
+    if (Object.prototype.hasOwnProperty.call(otherOptions, prop)) {
+      propVal = otherOptions[prop];
+      if (prop === "suppressOutputFrom") {
+        if (Array.isArray(propVal)) {
+          options[prop] = propVal; // we got an array, which is expected
+        } else if (typeof propVal === "string") {
+          // could be configured via gulp-mocha, which doesn"t do a great
+          // job with complex reporter options
+          options[prop] = propVal.split("|");
+        }
+      } else if (prop === "time") {
+        if (typeof propVal === "object") {
+          // traditional configuration, with an object
+          options[prop] = propVal;
+        } else {
+          // alternative config, as per cli or gulp-mocha
+          parts = new Set(propVal.split(","));
+          time.total = parts.has("total");
+          time.test = parts.has("test");
+          options[prop] = time;
+        }
+      } else if (prop === "impatient") {
+        options[prop] = flag(propVal);
+      } else {
+        options[prop] = propVal;
+      }
     }
   }
+
+  options.suppressOutputFrom = options.suppressOutputFrom.map(o => new RegExp(o));
 }
 
 function outputIgnoredFor(testName) {
-  var ignores = options.suppressOutputFrom || [];
-  return ignores.indexOf(testName) > -1;
+  return options.suppressOutputFrom.reduce(
+    (acc, cur) => acc || testName.match(cur),
+    false
+  );
 }
+
 function isNull(v) {
   return v === null;
 }
 function nullAsString() {
-  return 'null';
+  return "null";
 }
 function isUndefined(v) {
   return v === undefined;
 }
 function undefinedAsString() {
-  return 'undefined';
+  return "undefined";
 }
 function isArrayOrObject(v) {
-  return Array.isArray(v) || typeof v === 'object';
+  return Array.isArray(v) || typeof v === "object";
 }
 function prettyJson(v) {
   try {
     return JSON.stringify(v, null, 2);
   } catch (e) {
-    return '[object]';
+    return "[object]";
   }
 }
 function fallback() {
@@ -137,25 +169,32 @@ function asString(val) {
   return transform(val);
 }
 
-function shouldTime(label) {
-  var setByOptions = options.time && options.time[label] !== undefined;
-  var envValue = process.env['TIME_' + (label || '').toUpperCase()];
-  if (setByOptions && envValue === undefined) {
-    return !!setByOptions;
+function flag(val) {
+  if (val === true) {
+    return true;
   }
-  if (envValue === undefined) {
+  if (!val) {
     return false;
   }
-  switch (envValue.toLowerCase()) {
-    case 'true':
-    case '1':
+  switch (val.toString().toLowerCase()) {
+    case "true":
+    case "yes":
+    case "1":
       return true;
-    case 'false':
-    case '0':
+    case "false":
+    case "no":
+    case "0":
       return false;
-    default:
-      return !!envValue;
   }
+}
+
+function shouldTime(label) {
+  var setByOptions = options.time && options.time[label] !== undefined;
+  if (setByOptions) {
+    return flag(options.time[label]);
+  }
+  var envValue = process.env["TIME_" + (label || "").toUpperCase()];
+  return flag(envValue);
 }
 
 function switchLoggerFor(funcToRun, tempLogger) {
@@ -169,33 +208,36 @@ function switchLoggerFor(funcToRun, tempLogger) {
 }
 
 function startTotalTimer() {
-  if (shouldTime('total')) {
-    console.time('total test time');
+  if (shouldTime("total")) {
+    console.time("total test time");
   }
 }
 
 function startTestTimer(label) {
-  if (shouldTime('test')) {
+  if (shouldTime("test")) {
     console.time(label);
   }
 }
 
 function endTestTimer(label, logFn) {
-  if (shouldTime('test')) {
+  if (shouldTime("test")) {
     switchLoggerFor(function() {
       console.timeEnd(label);
     }, logFn);
-  } 
+  }
 }
 function endTotalTimer(logFn) {
-  if (shouldTime('total')) {
+  if (shouldTime("total")) {
     switchLoggerFor(function() {
-      console.timeEnd('total test time');
+      console.timeEnd("total test time");
     }, logFn);
-  } 
+  }
 }
 
-function ProgressReporter(runner) {
+function ProgressReporter(runner, opts) {
+  if (opts && opts.reporterOptions) {
+    extendOptionsWith(opts.reporterOptions);
+  }
   Base.call(this, runner);
   var
     passes = 0,
@@ -211,34 +253,34 @@ function ProgressReporter(runner) {
     return function () {
       var
         args = Array.prototype.slice.apply(arguments),
-        output = args.map(asString).join(' ');
+        output = args.map(asString).join(" ");
 
       if (current && !alreadyDidTestNameForLog) {
         alreadyDidTestNameForLog = true;
         clearLine();
-        var header = ['"', current, '" says:'];
+        var header = ["\"", current, "\" says:"];
         if (haveDoneSomeLoggingBefore) {
-          header.splice(0, 0, '\n');
+          header.splice(0, 0, "\n");
         }
         haveDoneSomeLoggingBefore = true;
-        writeColor(teal, header.join(''));
+        writeColor(teal, header.join(""));
         resetConsoleColors();
       }
-      writeColor(withOutputColor, '\n' + output);
+      writeColor(withOutputColor, "\n" + output);
       resetConsoleColors();
     };
   };
   var testAwareLogger = createTestAwareOutputter(white);
   var testAwareError = createTestAwareOutputter(whiteOnRed);
 
-  runner.on('start', function () {
+  runner.on("start", function () {
     startTotalTimer()
-    writeParts('pass', 'fail', 'total');
-    write('\n');
+    writeParts("pass", "fail", "total");
+    write("\n");
     console.log = testAwareLogger;
   });
 
-  runner.on('test', function (test) {
+  runner.on("test", function (test) {
     current = test.title;
     startTestTimer(test.title);
     alreadyDidTestNameForLog = false;
@@ -248,18 +290,18 @@ function ProgressReporter(runner) {
 
   var writeNewlineIfLogged = function () {
     if (alreadyDidTestNameForLog) {
-      write('\n');
+      write("\n");
     }
   };
 
-  runner.on('pass', function (test) {
+  runner.on("pass", function (test) {
     passes += 1;
     writeNewlineIfLogged();
     printProgress(passes, failures, total);
     endTestTimer(test.title, properLog);
   });
 
-  runner.on('fail', function (test) {
+  runner.on("fail", function (test) {
     failures += 1;
     writeNewlineIfLogged();
     printFail(test);
@@ -267,14 +309,14 @@ function ProgressReporter(runner) {
     endTestTimer(test.title, properLog);
   });
 
-  runner.on('end', function () {
+  runner.on("end", function () {
     console.log = properLog;
     console.error = properError;
     endTotalTimer(properLog);
   });
-  runner.on('end', this.epilogue.bind(this));
+  runner.on("end", this.epilogue.bind(this));
 }
-var proto = '__proto__';
+var proto = "__proto__";
 ProgressReporter.prototype[proto] = Base.prototype;
 ProgressReporter.setOptions = function (newOptions) {
   extendOptionsWith(newOptions);

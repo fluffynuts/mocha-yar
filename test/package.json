@@ -1,11 +1,22 @@
 {
+  "name": "mocha-yar-tests",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "gulp test-once",
+    "happy": "gulp test-happy-once",
+    "mixed": "gulp test-mixed-once",
+    "autotest": "gulp watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "devDependencies": {
-    "chai": "^3.5.0",
-    "del": "^2.2.0",
-    "gulp": "^3.9.1",
-    "gulp-debug": "^2.1.2",
-    "gulp-mocha": "^2.2.0",
-    "jslint": "^0.10.1",
-    "run-sequence": "^1.1.5"
+    "gulp": "^4.0.2",
+    "gulp-debug": "^4.0.0",
+    "gulp-mocha": "^7.0.2",
+    "mocha": "^8.0.1",
+    "mocha-yar": "^1.0.14"
   }
 }
