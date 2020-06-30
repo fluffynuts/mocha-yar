@@ -1,4 +1,5 @@
 # mocha-yar
+![NPM downloads](https://img.shields.io/npm/dw/mocha-yar)
 
 ### Yet Another Mocha Reporter
 
@@ -11,7 +12,9 @@ A Mocha test reporter designed to be more useful for continuous testing, includi
     3. You can tell where the logs come from (!!)
 3. Mad colorz, yo!
 4. Enable timing of tests:
-    1. Via config: ``` { time: { test: true, total: true } } ```
+    1. Via config: ```time: "test,total"```
+       - `test` will output timing after every test, so you'll lose the continual feel
+       - `total` will output total test time at the end of the run
     2. Via environment variables: `TIME_TEST` and `TIME_TOTAL`
         - you can use the special values "true", "false", "1" and "0" or any truthy value
     3. Environment variables override config, if the config exists

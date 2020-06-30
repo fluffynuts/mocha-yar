@@ -190,10 +190,10 @@ function flag(val) {
 
 function shouldTime(label) {
   var setByOptions = options.time && options.time[label] !== undefined;
-  if (setByOptions) {
+  var envValue = process.env["TIME_" + (label || "").toUpperCase()];
+  if (setByOptions && envValue === undefined) {
     return flag(options.time[label]);
   }
-  var envValue = process.env["TIME_" + (label || "").toUpperCase()];
   return flag(envValue);
 }
 
