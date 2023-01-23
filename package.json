@@ -32,7 +32,7 @@
   },
   "homepage": "https://github.com/fluffynuts/mocha-yar#readme",
   "dependencies": {
-    "mocha": "^7.1.2"
+    "mocha": "^10.2.0"
   },
   "devDependencies": {
     "chai": "^4.2.0",
